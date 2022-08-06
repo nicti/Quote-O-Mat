@@ -18,20 +18,25 @@ client.on('ready', () => {
     console.log(`Logged in as ${(_a = client.user) === null || _a === void 0 ? void 0 : _a.tag}!`);
 });
 client.on('messageCreate', (message) => __awaiter(void 0, void 0, void 0, function* () {
-    let ids = [...message.content.matchAll(/https:\/\/discordapp\.com\/channels\/([0-9]*)\/([0-9]*)\/([0-9]*)/gm)][0];
-    // 0 => full group, 1 => guildId, 2=> channelId, 3 => messageId
-    if (ids !== undefined && ids.length !== undefined && ids.length === 4) {
+    var _a;
+    let ids = [...message.content.matchAll(/https:\/\/(discordapp|discord)\.com\/channels\/([0-9]*)\/([0-9]*)\/([0-9]*)/gm)][0];
+    // 0 => full group, 1 => discord, 2 => guildId, 3=> channelId, 4 => messageId
+    if (ids !== undefined && ids.length !== undefined && ids.length === 5) {
         try {
-            let guild = yield client.guilds.resolve(ids[1]);
+            let guild = yield client.guilds.resolve(ids[2]);
             if (guild === null)
                 return;
-            let channel = yield guild.channels.resolve(ids[2]);
+            let channel = yield guild.channels.resolve(ids[3]);
             if (channel === null || !channel.isTextBased())
                 return;
             // @ts-ignore
-            let linkedMessage = yield channel.messages.fetch(ids[3]);
+            let linkedMessage = yield channel.messages.fetch(ids[4]);
             if (linkedMessage === null)
                 return;
+            if (linkedMessage.author.id === ((_a = client.user) === null || _a === void 0 ? void 0 : _a.id)) {
+                yield message.reply("I can't quote myself quoting, just link the original quote!");
+                return;
+            }
             yield message.reply({
                 content: `**${linkedMessage.author.username}#${linkedMessage.author.discriminator}** said:\n${linkedMessage.content}`,
                 embeds: linkedMessage.embeds

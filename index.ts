@@ -10,17 +10,21 @@ client.on('ready', () => {
 });
 
 client.on('messageCreate', async (message) => {
-    let ids = [...message.content.matchAll(/https:\/\/discordapp\.com\/channels\/([0-9]*)\/([0-9]*)\/([0-9]*)/gm)][0]
-    // 0 => full group, 1 => guildId, 2=> channelId, 3 => messageId
-    if (ids !== undefined && ids.length !== undefined && ids.length === 4) {
+    let ids = [...message.content.matchAll(/https:\/\/(discordapp|discord)\.com\/channels\/([0-9]*)\/([0-9]*)\/([0-9]*)/gm)][0]
+    // 0 => full group, 1 => discord, 2 => guildId, 3=> channelId, 4 => messageId
+    if (ids !== undefined && ids.length !== undefined && ids.length === 5) {
         try {
-            let guild = await client.guilds.resolve(ids[1])
+            let guild = await client.guilds.resolve(ids[2])
             if (guild === null) return
-            let channel: TextChannel = await guild.channels.resolve(ids[2]) as TextChannel
+            let channel: TextChannel = await guild.channels.resolve(ids[3]) as TextChannel
             if (channel === null || !channel.isTextBased()) return
             // @ts-ignore
-            let linkedMessage = await channel.messages.fetch(ids[3])
+            let linkedMessage = await channel.messages.fetch(ids[4])
             if (linkedMessage === null) return
+            if (linkedMessage.author.id === client.user?.id) {
+                await message.reply("I can't quote myself quoting, just link the original quote!")
+                return
+            }
             await message.reply({
                 content: `**${linkedMessage.author.username}#${linkedMessage.author.discriminator}** said:\n${linkedMessage.content}`,
                 embeds: linkedMessage.embeds
